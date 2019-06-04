@@ -24,9 +24,11 @@ p = 1000
 s = 10
 
 # Set the discount parameter
-beta = 0.75
+beta = 0.1
 
-def compute_value_function(Theta, Unobservables, grid=np.linspace(-100,100,10e4), precision=1e-6, draws=10e5):
+def compute_value_function(Theta, Unobservables, grid=np.linspace(-200,200,10e4), precision=1e-6, draws=10e5):
+
+	grid_filter = np.abs(grid) < 100
 
 	# Get value function parameters
 	A0, A1, B0, B1 = Unobservables
@@ -52,12 +54,14 @@ def compute_value_function(Theta, Unobservables, grid=np.linspace(-100,100,10e4)
 		C0 + np.multiply(D0,grid), 
 		C1 + np.multiply(D1,grid))
 
-	while np.amax(np.abs(V_old-V_new)) > precision:
+	distance = np.amax(np.abs(V_old-V_new)[grid_filter])
+
+	while distance > precision:
 
 		V_old = V_new
 
 		# The function "f" maps x to EV(x + e) where e ~ N(0,1) 
-		f = interp1d(grid, np.convolve(V_old,jump_density))
+		f = interp1d(grid, np.convolve(V_old,jump_density,mode='same'))
 
 		# The continuation values contain EV(Ax + e) for each value in the grid
 		CV0 = f(np.multiply(AR0,grid))
@@ -68,13 +72,16 @@ def compute_value_function(Theta, Unobservables, grid=np.linspace(-100,100,10e4)
 		C0 + np.multiply(D0,grid) + beta*CV0, 
 		C1 + np.multiply(D1,grid) + beta*CV1)
 
+		distance = np.amax(np.abs(V_old-V_new)[grid_filter])
+		print(distance)
+		
 	# VF contains our final estimate of the value function
 	VF = V_new
 
 	# Policy contains the optimal action for each value in the grid
 	Policy = C0 + np.multiply(D0,grid) + beta*CV0 < np.multiply(D1,grid) + beta*CV1
 	
-
+	return {"value_function": VF, "policy": policy}
 
 # This function will generate an approximately sparse signal of the form Theta_1 + Theta_2
 # - p = dimension of vector
@@ -122,11 +129,12 @@ def generate_unobservable_parameters(n=n,p=p):
 
 def test():
 	Theta = generate_observable_parameters()
+
 	Unobservables = generate_unobservable_parameters()
 
-	VF0 = compute_value_function(Theta, Unobservables)
+	Policy = compute_value_function(Theta, Unobservables)
 
-
+	Data = simulate_dgp(Policy, Theta, Unobservables)
 
 if __name__ == '__main__':
 	test()
