@@ -8,7 +8,6 @@
 import numpy as np 
 import matplotlib.pyplot as mpl
 
-from scipy.interpolate import interp1d
 from scipy.stats import norm as normal
 
 from vf_iteration import compute_value_function
