@@ -4,7 +4,7 @@
 # Requires debugging.
 
 def compute_policy_dummy(Theta, Unobservables, grid=np.linspace(-200,200,10e4), precision=1e-6, draws=10e5):
-	return {"value_function": VF, "policy": grid > 0}
+	return {"value_function": np.array([0 for _ in grid]), "policy": grid > 0, "grid": grid}
 
 def compute_policy_vf_iteration(Theta, Unobservables, grid=np.linspace(-200,200,10e4), precision=1e-6, draws=10e5):
 
@@ -61,4 +61,4 @@ def compute_policy_vf_iteration(Theta, Unobservables, grid=np.linspace(-200,200,
 	# Policy contains the optimal action for each value in the grid
 	Policy = C0 + np.multiply(D0,grid) + beta*CV0 < np.multiply(D1,grid) + beta*CV1
 	
-	return {"value_function": VF, "policy": policy}
+	return {"value_function": VF, "policy": policy, "grid": grid}

@@ -10,8 +10,9 @@ import matplotlib.pyplot as mpl
 
 from scipy.stats import norm as normal
 
-from vf_iteration import compute_value_function
+from compute_policy import compute_policy_dummy as dummy_policy
 from simulate import simulate_dgp
+
 # Set the random seed for replicability
 RANDOM_SEED = 13
 np.random.seed(RANDOM_SEED)
@@ -72,17 +73,14 @@ def generate_unobservable_parameters(n=n,p=p):
 
 	return (A0,A1,B0,B1)
 
-def test():
+def test_with_dummy_policy():
 	Theta = generate_observable_parameters()
 
 	Unobservables = generate_unobservable_parameters()
 
-	Policy = compute_value_function(Theta, Unobservables)
+	Policy = dummy_policy(Theta, Unobservables)
 
 	Data = simulate_dgp(Policy, Theta, Unobservables)
 
 if __name__ == '__main__':
-	test()
-
-
-	
+	test_with_dummy_policy()
