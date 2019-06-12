@@ -4,46 +4,68 @@
 # This file contains the code that simulates the dgp given
 # dgp parameters and an estimate of the optimal policy
 
-from scipy.interpolate import interp1d
 import numpy as np
 
-def simulate_dgp(Policy, Unobservables, theta_D, iterations=5000):
+class ModelAgent(object):
 	
-	# Get value function parameters
-	A0, A1, B0, B1 = Unobservables
-	
-	# Reconstruct policy function from grid values by linear interpolation
-	policy_values = Policy["policy"]
-	policy_grid = Policy["grid"]
-	policy_fn = interp1d(policy_values, policy_grid)
-	
-	actions = []
-	states = []
-	
-	theta_D_current = theta_D
-	
-	# Now we simulate the actions and the resulting movement of the dynamic state according to
-	# the policy function we computed
-	
-	for i in range(iterations):
-	
-		# Compute and record state and optimal action
-		# Note that we round actions at the boundary; may be better to randomize
-		states.append(theta_D_current)
-		action = int(policy_fn(theta_D_current)) 
-		actions.append(action)
+	def __init__(self, model):
+		self.model = model 
+		self.static_state = generate_static_state()
+		self.dynamic_state = generate_dynamic_state()
+		self.initial_dynamic_state = self.dynamic_state
 		
-		# Update state according to law of motion
-		theta_D_current = (action * A1 + (1-action) * A0) * theta_D_current + np.random.randn(1)
+	def generate_static_state(self):
+		return np.random.randn(self.model.p)
 		
-	return {
-		"actions": np.array(actions),
-		"states":  np.array(states)
-	}	
+	def generate_dynamic_state(self)
+		return np.random.randn(self.model.q)
 		
+	def utility(self, dynamic_state=self.dynamic_state, action, shock):
+		state = np.concatenate((dynamic_state,self.static_state))
+		return self.model.utility(state, action, shock)
 		
+	def next_state(self, dynamic_state=self.dynamic_state, action, shock, update=True):
+		state = np.concatenate((dynamic_state,self.static_state))
+		next_state = self.model.next_state(state, action, shock)
+		self.dynamic_state = (next_state if update else self.dynamic_state)
+		return next_state
+		
+	def reset_state(self):
+		self.dynamic_state = self.initial_dynamic_state
+		
+	def simulate(self, n=self.model.n, shocks, policy):
+		states = np.zeros(n,self.model.q)
+		actions = np.zeros(n)
+		for i in range(n):
+			states[i,:] = self.dynamic_state
+			actions[i] = policy(self.dynamic_state)
+			self.next_state(actions[i],shocks[i])
+		self.reset_state()
+		return (states, actions)
+			
+def BasicModelAgent(ModelInstance):
 	
-	
+	def __init__(self, *args, **kwargs):
+		super(BasicModelInstance, self).__init__(*args, **kwargs)
+		
+		self.AR1 = np.dot(self.model.A1, self.static_state)
+		self.AR0 = np.dot(self.model.A0, self.static_state)
+		
+		self.C1 = np.dot(self.model.B1[1:], self.static_state)
+		self.C0 = np.dot(self.model.B0[1:], self.static_state)
+		
+		self.D1 = self.model.B1[0]
+		self.D0 = self.model.B0[0]
+		
+	def next_state(self, *args, **kwargs):
+		next_state = (action*self.AR1 + (1-action)*self.AR0) * dynamic_state + shock
+		self.dynamic_state = (next_state if update else self.dynamic_state)
+		return next_state
+
+	def utility(self, *args, **kwargs):
+		return (action * (self.C1 + self.D1 * dynamic_state) + (1-action) * (self.C0 + self.D0 * dynamic_state))		
+
+
 	
 	
 	

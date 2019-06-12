@@ -3,57 +3,47 @@
 # This file contains the value function iteration procedure.
 # Requires debugging.
 
-def compute_policy_dummy(Theta, Unobservables, grid=np.linspace(-200,200,10e4), precision=1e-6, draws=10e5):
+import numpy as np
+from scipy.interpolate import interpn, interp1d
+from numba import prange
+
+def compute_policy_dummy(model_instance, grid=np.linspace(-200,200,10e4)):
 	return {"value_function": np.array([0 for _ in grid]), "policy": grid > 0, "grid": grid}
-
-def compute_policy_vf_iteration(Theta, Unobservables, grid=np.linspace(-200,200,10e4), precision=1e-6, draws=10e5):
-
-	grid_filter = np.abs(grid) < 100
-
-	# Get value function parameters
-	A0, A1, B0, B1 = Unobservables
-
-	# These are the action specific AR coefficients
-	AR0 = np.dot(A0,Theta[1:])
-	AR1 = np.dot(A1,Theta[1:])
-
-	# These are the action specific utility constants
-	C0 = np.dot(B0[1:], Theta[1:])
-	C1 = np.dot(B1[1:], Theta[1:])
-
-	# These are the action specific utility coefficients on the dynamic state
-	D0 = B0[0]
-	D1 = B1[0]
-
-	# Compute discrete approximation to normal distribution
-	jump_density = normal.pdf(grid)
+	
+def compute_policy_q_learning(model_instance):
+	pass
+	
+def compute_policy_vf_iteration(model_agent, X=np.linspace(-200,200,10e4), precision=1e-6, ε_vector=np.random.randn(10e5)):
+	
+	expected_utility = np.vectorize(lambda a, x : model_agent.utility(dynamic_state=x, action=x, shock=0))
+	transition_kernel = lambda a, x, ε : model_agent.next_state(dynamic_state=x, action=a, shock=ε)
+	
+	
+	β = model_agent.discount_factor
+	
+	
+	δ = lambda v1, v2: np.amax(np.abs(v1-v2))
+	
+	def bellman_operator(Vf):
+		TV = np.empty_like(grid)
+		for i in prange(grid.shape[0]):
+			x = grid[i,:]
+			t1 = lambda ε : transition(1, x, ε)
+			t0 = lambda ε : transition(0, x, ε)
+			TV[i,:] = max(
+				EU(1,x) + β * np.mean(V(t1(ε_vector))),
+				EU(0,x) + β * np.mean(V(t0(ε_vector)))
+			) 
+		return TV	
 
 	# Compute the initial value function values
-	V_old = np.zeros(grid.shape)
-	V_new = np.maximum(
-		C0 + np.multiply(D0,grid), 
-		C1 + np.multiply(D1,grid))
+	V_old = np.empty_like(grid)
+	V_new = bellman_operator(lambda x: 0)
 
-	distance = np.amax(np.abs(V_old-V_new)[grid_filter])
-
-	while distance > precision:
-
+	while δ(V_new,V_old) > precision:
 		V_old = V_new
-
-		# The function "f" maps x to EV(x + e) where e ~ N(0,1) 
-		f = interp1d(grid, np.convolve(V_old,jump_density,mode='same'))
-
-		# The continuation values contain EV(Ax + e) for each value in the grid
-		CV0 = f(np.multiply(AR0,grid))
-		CV1 = f(np.multiply(AR1,grid))
-
-		# Given all this, we can compute the next step of value function iteration
-		V_new = np.maximum(
-		C0 + np.multiply(D0,grid) + beta*CV0, 
-		C1 + np.multiply(D1,grid) + beta*CV1)
-
-		distance = np.amax(np.abs(V_old-V_new)[grid_filter])
-		print(distance)
+		Vf = interp1d(grid,V_old,assume_sorted=True)
+		V_new = bellman_operator
 
 	# VF contains our final estimate of the value function
 	VF = V_new

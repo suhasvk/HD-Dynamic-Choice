@@ -1,38 +1,67 @@
 # dgp.py
 # Suhas Vijaykumar, May 2019
 
-# This file will contain the code used to simulate the
-# data generating processes used to evaluate proposed
-# estimators
+# This file will contain the definitions of various models for the data generating process
+# These definitions will contain all information necessary to solve and simulate the model
 
 import numpy as np 
-import matplotlib.pyplot as mpl
 
-from scipy.stats import norm as normal
+# The "Model" class is a template outlining the information required to solve and simulate a model within our framework
+# Each instance of the Model class will be able to map states and actions to utilities and transition probabilities
+# according to a specified data generating process.
 
-from compute_policy import compute_policy_dummy as dummy_policy
-from simulate import simulate_dgp
+class Model(object):
+	
+	def __init__(self, p=1000, q=1, beta=.01):
+		
+		self.q = q
+		self.p = p
+		self.discount_factor = beta
+		
+		self.generate_unobservable_parameters()
+		
+	def generate_model_parameters(self):
+		pass
+		
+	def utility(self, action, state):
+		pass
+		
+	def next_state(self, action, state, shock):
+		pass
+			
+# An instance of the BasicModel class is a data generating process with approximately sparse utility specification
+# and truly sparse AR(1) law of motion.
 
-# Set the random seed for replicability
-RANDOM_SEED = 13
-np.random.seed(RANDOM_SEED)
+class BasicModel(Model):
+	
+	def __init__(self, s=1, *args, **kwargs):
+		super(BasicModel, self).__init__(*args, **kwargs)
+		self.s = s
+	
+	def generate_model_parameters(self):
+		
+		# These determine the state- and action-specific utility function
+		self.B0 = approximately_sparse(self.p+1)
+		self.B1 = approximately_sparse(self.p+1)
 
-# Set the sample size
-n = 1000
-
-# Set the dimension of the (high-dimensional, static) component of the state
-p = 1000
-
-# Set the size of support of exactly sparse vectors
-s = 10
-
-# Set the discount parameter
-beta = 0.1
-
-# This function will generate an approximately sparse signal of the form Theta_1 + Theta_2
+		# These are the multipliers that determine AR coefficients for the dynamic state
+		# We divide by s+1 to ensure that AR coefficients lie strictly between zero and one
+		self.A0 = np.absolute(approximately_sparse(self.p, decay_component=False)) / (self.s+1) + 1./np.power(self.p,2)
+		self.A1 = np.absolute(approximately_sparse(self.p, decay_component=False)) / (self.s+1) + 1./np.power(self.p,2)	
+			
+	def utility(self, action, state, utility_shock):
+		
+		return action * np.dot(self.B1, state) + (1-action) * np.dot(self.B0, state) + utility_shock
+		
+	def next_dynamic_state(self, action, state, state_shock):
+		
+		return ( action * np.dot(self.A1,state[1:]) + (1-action)*np.dot(self.A0,state[1:]) ) * state[0] + state_shock
+		
+# This helper function generates an approximately sparse signal of the form Theta_1 + Theta_2
 # - p = dimension of vector
 # - s = size of support of (truly sparse) Theta_1
 # - Theta_2 (apx. sparse) has k'th coordinate U_k/k^2 where U_k is Unif[-1,1].
+
 def approximately_sparse(p, s=s, true_sparse_component=True, decay_component=True):
  	
 	dense_part = np.multiply(
@@ -48,39 +77,3 @@ def approximately_sparse(p, s=s, true_sparse_component=True, decay_component=Tru
 
 	return dense_part*int(decay_component) + sparse_part*int(true_sparse_component)
 
-# This generates the (observable) state of the agent
-def generate_observable_parameters(n=n,p=p):
-
-	# This is the dynamic state (drawn from a standard normal distribution)
-	ThetaD = np.random.randn(1)
-
-	# This is the static state (high dimensional, binary/categorical)
-	ThetaS = np.random.randint(2,size=(p,))
-
-	return np.hstack((ThetaD,ThetaS))
-
-# This generates the (unobserbable) utility function and state evolution parameters
-def generate_unobservable_parameters(n=n,p=p):
-
-	# These determine the state-specific utility function
-	B0 = approximately_sparse(p+1)
-	B1 = approximately_sparse(p+1)
-
-	# These are the multipliers that determine  AR coefficients for the dynamic state
-	# We divide by s+1 to ensure that AR coefficients lie strictly between zero and one
-	A0 = np.absolute(approximately_sparse(p, decay_component=False)) / (s+1) + 1./np.power(p,2)
-	A1 = np.absolute(approximately_sparse(p, decay_component=False)) / (s+1) + 1./np.power(p,2)
-
-	return (A0,A1,B0,B1)
-
-def test_with_dummy_policy():
-	Theta = generate_observable_parameters()
-
-	Unobservables = generate_unobservable_parameters()
-
-	Policy = dummy_policy(Theta, Unobservables)
-
-	Data = simulate_dgp(Policy, Theta, Unobservables)
-
-if __name__ == '__main__':
-	test_with_dummy_policy()
