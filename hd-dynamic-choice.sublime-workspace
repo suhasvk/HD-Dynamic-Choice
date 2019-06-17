@@ -1,0 +1,437 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"act",
+				"active_in_interval"
+			],
+			[
+				"in",
+				"in_interval"
+			],
+			[
+				"RATING_FILD",
+				"RATING_FILE_UID_HEADING"
+			],
+			[
+				"RAT",
+				"RATING_FILE_FROM_HEADING"
+			],
+			[
+				"MESSA",
+				"MESSAGE_FILE_UID_HEADING"
+			],
+			[
+				"uid_",
+				"uid_index"
+			],
+			[
+				"MESSAGE_",
+				"MESSAGE_FILE_IS_OFFER_HEADING"
+			],
+			[
+				"MES",
+				"MESSAGE_FILE_TIMESTAMP_HEADING"
+			],
+			[
+				"times",
+				"timestamp_index"
+			],
+			[
+				"MESS",
+				"MESSAGE_FILE_TO_HEADING"
+			],
+			[
+				"mes",
+				"message_reader"
+			],
+			[
+				"mess",
+				"message_file"
+			],
+			[
+				"file",
+				"file_list"
+			],
+			[
+				"construc",
+				"construct_network"
+			],
+			[
+				"ver",
+				"vertex_lookup"
+			],
+			[
+				"read",
+				"reader_chunk"
+			],
+			[
+				"chunk",
+				"chunk_size"
+			],
+			[
+				"ch",
+				"chunk_size"
+			],
+			[
+				"to",
+				"to_index"
+			],
+			[
+				"off",
+				"offer_tag"
+			],
+			[
+				"if",
+				"ifmain\tif __name__ == '__main__'"
+			],
+			[
+				"R",
+				"RatingDictionary"
+			],
+			[
+				"OFF",
+				"OFFER_TAG"
+			],
+			[
+				"RA",
+				"RATINGS_FILE_ADDRESS"
+			],
+			[
+				"is",
+				"is_offer_index"
+			],
+			[
+				"T",
+				"TIME_FORMAT"
+			],
+			[
+				"time",
+				"timestamp_index"
+			],
+			[
+				"M",
+				"MESSAGE_FILE_TIMESTAMP_HEADING"
+			],
+			[
+				"from",
+				"from_index"
+			],
+			[
+				"messa",
+				"message_file"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "compute_policy.py",
+			"settings":
+			{
+				"buffer_size": 1690,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+		[
+			[
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					""
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Traditional"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"PdfLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"XeLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"LuaLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Basic Builder"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Basic Builder - PdfLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Basic Builder - XeLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Basic Builder - LuaLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Script Builder"
+				]
+			],
+			[
+				"Packages/LaTeXTools/LaTeX.sublime-build",
+				"PdfLaTeX"
+			]
+		],
+		[
+			[
+				[
+					"Packages/Python/Python.sublime-build",
+					""
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					"Syntax Check"
+				]
+			],
+			[
+				"Packages/Python/Python.sublime-build",
+				""
+			]
+		]
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"instal",
+				"Package Control: Install Package"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"package",
+				"Install Package Control"
+			]
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/Users/suhasvijaykumar/Dropbox (Personal)/Research/High-Dimensional Dynamic Discrete Choice"
+	],
+	"file_history":
+	[
+		"/Users/suhasvijaykumar/Dropbox (MIT)/Bunz/code/Network Analysis/analysis.py",
+		"/Users/suhasvijaykumar/Dropbox (MIT)/Bunz/code/Network Analysis/construct_network.py",
+		"/Users/suhasvijaykumar/Dropbox (Personal)/Research/Central Limit Theorems for Kernel Regression/RLS.tex",
+		"/Users/suhasvijaykumar/Dropbox (Personal)/Research/Propensities for Endogenous Networks/Graphon.tex",
+		"/Users/suhasvijaykumar/Dropbox (Personal)/Research/The Energy-Entropy Tradeoff in Evolutionary Dynamics/Dynamics.tex",
+		"/Volumes/Secomba/suhasvijaykumar/Boxcryptor/Dropbox (MIT)/Bunz/data/power_users/quick_count.py",
+		"/Users/suhasvijaykumar/Dropbox (Personal)/Research/High-Dimensional Dynamic Discrete Choice/dgp.py",
+		"/Volumes/Secomba/suhasvijaykumar/Boxcryptor/Dropbox (MIT)/Bunz/data/BunzData_Encrypted/bunz_feelings.csv",
+		"/Users/suhasvijaykumar/Dropbox (Personal)/School/'18-'19 Classes/Lecture/boolean.bib",
+		"/Users/suhasvijaykumar/Dropbox (Personal)/School/'18-'19 Classes/Lecture/boolean.tex",
+		"/Users/suhasvijaykumar/Dropbox (Personal)/Research/Matrix Completion for Structural Latent Variable Models/Structural.tex",
+		"/Users/suhasvijaykumar/Library/Application Support/Sublime Text 3/Packages/User/LaTeXTools.sublime-settings",
+		"/Users/suhasvijaykumar/Library/Application Support/Sublime Text 3/Packages/User/Default (OSX).sublime-keymap",
+		"/Users/suhasvijaykumar/.bash_profile",
+		"/usr/local/texlive/texmf-local/bibtex/bst/te.bst",
+		"/Users/suhasvijaykumar/Dropbox (MIT)/MDmeetsRD/ignacio/REPLICATION FOLDER MDRD/0_data_construction/0.formula Mid frequency pscores/create_pscore_charter_subroutine_year2.do",
+		"/Users/suhasvijaykumar/Dropbox (Personal)/School/'18-'19 Classes/14384PS3b.tex",
+		"/Users/suhasvijaykumar/Dropbox (Personal)/School/'18-'19 Classes/14384PS3.tex",
+		"/Users/suhasvijaykumar/Desktop/figs.tex"
+	],
+	"find":
+	{
+		"height": 26.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "compute_policy.py",
+					"semi_transient": true,
+					"settings":
+					{
+						"buffer_size": 1690,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 26.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 164.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.latextools":
+	{
+		"height": 108.0
+	},
+	"output.sftp":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "Packages/LaTeXTools/LaTeX.sublime-build",
+	"project": "hd-dynamic-choice.sublime-project",
+	"replace":
+	{
+		"height": 48.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 321.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
