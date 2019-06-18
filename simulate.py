@@ -29,8 +29,8 @@ def simulate_basic_model_slow(agents = 100, T = 1000):
 	return {
 		'static_states' : StaticStates,
 		'dynamic_states' : DynamicStates,
-		'actions' : Actions
-		'environment_unobservables' : model
+		'actions' : Actions,
+		'environment_unobservables' : model,
 		'individual_unobservables' : agent
 	}
 
