@@ -60,7 +60,7 @@ def vf_iteration(X, TX0, TX1, EU0, EU1, b, n_draws, precision, verbose):
 			print("iterations:", iterations)
 			print("distance:", distance(V1,V0))
 
-	return V1, Policy
+	return V1, Policy, X
 
 def compute_policy(model_agent, grid=np.linspace(-200,200,10e4), precision=1e-6, n_draws = 1000, verbose=False, method = 'vf_iteration'):
 	
@@ -75,7 +75,7 @@ def compute_policy(model_agent, grid=np.linspace(-200,200,10e4), precision=1e-6,
 	# print(TX0[10])
 
 	if method is 'vf_iteration':
-		ValueFunction, OptimalPolicy = vf_iteration(
+		ValueFunction, OptimalPolicy, Grid = vf_iteration(
 			X = grid,
 			TX0 = transition_kernel(grid,0),
 			TX1 = transition_kernel(grid,1),
@@ -90,7 +90,7 @@ def compute_policy(model_agent, grid=np.linspace(-200,200,10e4), precision=1e-6,
 	else:
 		raise Exception("Dynamic programming method %s not supported!" % method)
 
-	return (ValueFunction, OptimalPolicy)
+	return (ValueFunction, OptimalPolicy, Grid)
 
 	
 def test_vf_iteration():

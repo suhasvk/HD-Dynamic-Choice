@@ -5,6 +5,7 @@
 # These definitions will contain all information necessary to solve and simulate the model
 
 import numpy as np 
+from numba import njit, float64, uint16
 
 # The "Model" class is a template outlining the information required to solve and simulate a model within our framework
 # Each instance of the Model class will be able to map states and actions to utilities and transition probabilities
@@ -47,28 +48,28 @@ class BasicModel(Model):
 		self.B0 = approximately_sparse(self.p+self.q, self.s)
 		self.B1 = approximately_sparse(self.p+self.q, self.s)
 
-		# These are the multipliers that determine AR coefficients for the dynamic state
-		# We divide by s+1 to ensure that AR coefficients lie strictly between zero and one
-		self.A0 = np.absolute(approximately_sparse(self.p, self.s, decay_component=False)) / (self.s+1) + 1./np.power(self.p,2)
-		self.A1 = np.absolute(approximately_sparse(self.p, self.s, decay_component=False)) / (self.s+1) + 1./np.power(self.p,2)	
-			
+		
+		self.A0 = self.make_ar(self.p, self.s)
+		self.A1 = self.make_ar(self.p, self.s)
+
+	# This generates the multipliers that determine AR coefficients for the dynamic state
+	# We divide by s+1 to ensure that AR coefficients lie strictly between zero and one
+	@staticmethod
+	@njit('float64[:](uint16, uint16)')
+	def make_ar(p, s):
+		return np.absolute(approximately_sparse(self.p, self.s, decay_component=False)) / (self.s+1) + 1./np.power(self.p,2)
+
 	def utility(self, action, state, shock):
 		return action * np.dot(self.B1, state) + (1-action) * np.dot(self.B0, state) + shock
 		
 	def next_dynamic_state(self, action, state, shock):
  		return ( action * np.dot(self.A1,state[self.q:]) + (1-action)*np.dot(self.A0,state[self.q:]) ) * state[0:self.q] + shock
  		
-#  	def agent(self, static_state=None, dynamic_state=None):
-#  		new_agent = BasicModelAgent(self)
-#  		print(new_agent)
-#  		new_agent.static_state = (new_agent.static_state if static_state is None else static_state)
-#  		new_agent.dynamic_state = (new_agent.dynamic_state if dynamic_state is None else dynamic_state)
-#  		return new_agent
-		 
 # This helper function generates an approximately sparse signal of the form Theta_1 + Theta_2
 # - p = dimension of vector
 # - s = size of support of (truly sparse) Theta_1
 # - Theta_2 (apx. sparse) has k'th coordinate U_k/k^2 where U_k is Unif[-1,1].
+@njit("float64[:](uint16, uint16, boolean, boolean)")
 def approximately_sparse(p, s, true_sparse_component=True, decay_component=True):
  	
 	dense_part = np.multiply(
@@ -87,37 +88,37 @@ def approximately_sparse(p, s, true_sparse_component=True, decay_component=True)
 class ModelAgent(object):
 	
 	def __init__(self, model):
-
 		self.model = model 
-		self.static_state = self.generate_static_state()
-		self.dynamic_state = self.generate_dynamic_state()
+		self.static_state = self.generate_static_state(self.model.p)
+		self.dynamic_state = self.generate_dynamic_state(self.model.q)
 		self.initial_dynamic_state = self.dynamic_state
 		
-	def generate_static_state(self):
-		return np.random.randn(self.model.p)
+	@staticmethod
+	@njit("float64[:](uint16)")
+	def generate_static_state(p):
+		return np.random.randn(p)
 		
-	def generate_dynamic_state(self):
-		return np.random.randn(self.model.q)
+	@staticmethod
+	@njit("float64[:](uint16)")
+	def generate_dynamic_state(q):
+		return np.random.randn(q)
 		
 	def utility(self, action, shock, dynamic_state=None):
 		dynamic_state = (self.dynamic_state if dynamic_state is None else dynamic_state)
 		state = np.concatenate((dynamic_state,self.static_state))
 		return self.model.utility(state, action, shock)
 		
-	def next_state(self, action, shock, dynamic_state=None, update=True):
-		dynamic_state = (self.dynamic_state if dynamic_state is None else dynamic_state)
+	def next_state(self, action, shock, dynamic_state):
 		state = np.concatenate((dynamic_state,self.static_state))
 		next_state = self.model.next_state(state, action, shock)
-		self.dynamic_state = (next_state if update else self.dynamic_state)
 		return next_state
 		
 	def reset_state(self):
 		self.dynamic_state = self.initial_dynamic_state
 		
-	def simulate(self, shocks, policy, n=None):
-		n = (self.model.n if n is None else n)
-		states = np.zeros(n,self.model.q)
-		actions = np.zeros(n)
+	def simulate(self, shocks, policy, T):
+		states = np.zeros(T,self.model.q)
+		actions = np.zeros(T)
 		for i in range(n):
 			states[i,:] = self.dynamic_state
 			actions[i] = policy(self.dynamic_state)
@@ -140,14 +141,38 @@ class BasicModelAgent(ModelAgent):
 		self.D1 = self.model.B1[0]
 		self.D0 = self.model.B0[0]
 		
-	def next_state(self, action, shock, dynamic_state=None, update=True):
-		next_state = (action*self.AR1 + (1-action)*self.AR0) * dynamic_state + shock
-		self.dynamic_state = (next_state if update else self.dynamic_state)
-		return next_state
+	def next_state(self, action, shock, dynamic_state):
+		return self.fast_next_state(self.AR0, self.AR1, dynamic_state, action, shock)
 
-	def utility(self, action, shock, dynamic_state=None):
-		return (action * (self.C1 + self.D1 * dynamic_state) + (1-action) * (self.C0 + self.D0 * dynamic_state))		
-		
+	def utility(self, action, shock, dynamic_state):
+		return self.fast_util(self.C0, self.C1, self.D0, self.D1, dynamic_state, action, shock)
+
+	def simulate(self, policy, grid, T):
+		return self.fast_simulate(self.initial_dynamic_state, policy, grid, self.AR0, self.AR1, T)
+
+	@staticmethod
+	@njit("float64(float64, float64, float64, float64, float64, float64, uint16)")
+	def fast_util(C0, C1, D0, D1, state, action, shock):
+		return (action * (C1 + D1 * state) + (1-action) * (C0 + D0 * state)) + shock
+
+	@staticmethod
+	@njit("float64(float64, float64, float64, float64, uint16)")
+	def fast_next_state(AR0, AR1, state, action, shock):
+		return (action * AR1 + (1-action) * AR0) * state + shock
+
+	@staticmethod
+	@njit("float64[:,:](float64, float64[:], float64[:], float64, float64, uint16)")
+	def fast_simulate(init_state, policy, grid, AR0, AR1, T):
+		shocks = np.random.randn(T)
+		log = np.empty(T,2)
+		state = init_state
+		for t in range(T):
+			action = np.round(np.interp(grid, policy, state))
+			log[t,0] = state
+			log[t,1] = action
+			state = fast_basic_next_state(AR0, AR1, state, action, shocks[t])
+		return log
+
 # TESTS
 
 def test_basic_model():
