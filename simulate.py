@@ -36,7 +36,7 @@ def simulate_basic_model_slow(agents = 100, T = 1000):
 
 if __name__=='__main__':
 	models = [simulate_basic_model_slow() for _ in range(n_models)]
-	pickle.dump(models,open('data_file.pkl','rb'))
+	pickle.dump(models,open('data_file.pkl','wb'))
 
 # @njit
 # def simulate_basic_model_fast(agents=100, B0, B1, A0, A1, beta, p):
