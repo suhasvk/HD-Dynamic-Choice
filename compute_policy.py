@@ -12,7 +12,7 @@ matplotlib.use('Agg')
 from matplotlib import pyplot as mpl
 
 def compute_policy_dummy(model_instance, grid=np.linspace(-200,200,10e4)):
-	return {"value_function": np.array([0 for _ in grid]), "policy": grid > 0, "grid": grid}
+	return np.zeros_like(grid), grid > 0, grid
 	
 def q_learning(model_instance):
 	pass	
@@ -43,7 +43,8 @@ def bellman_operator(V, X, TX0, TX1, EU0, EU1, random_draws, b):
 @njit 
 def vf_iteration(X, TX0, TX1, EU0, EU1, b, n_draws, precision, verbose):
 
-	print("computing value function by vf_iteration")
+	if verbose:
+		print("computing value function by vf_iteration")
 	V0 = np.zeros(X.shape[0])
 	V1 = np.fmax(EU0, EU1)
 	random_draws = np.random.randn(n_draws)
@@ -62,10 +63,10 @@ def vf_iteration(X, TX0, TX1, EU0, EU1, b, n_draws, precision, verbose):
 
 	return V1, Policy, X
 
-def compute_policy(model_agent, grid=np.linspace(-200,200,10e4), precision=1e-6, n_draws = 1000, verbose=False, method = 'vf_iteration'):
+def compute_policy(model_agent, grid=np.linspace(-200,200,10e4), precision=1e-6, n_draws = 1e3, verbose=False, method = 'vf_iteration'):
 	
 	expected_utility = np.vectorize(lambda a, x : model_agent.utility(action=a, shock=0, dynamic_state=x))
-	transition_kernel = np.vectorize(lambda a, x : model_agent.next_state(action=a, shock=0, dynamic_state=x, update=False))
+	transition_kernel = np.vectorize(lambda a, x : model_agent.next_state(action=a, shock=0, dynamic_state=x))
 
 	# The agent's discount factor is given by b	
 	b = model_agent.model.discount_factor
@@ -96,7 +97,7 @@ def compute_policy(model_agent, grid=np.linspace(-200,200,10e4), precision=1e-6,
 def test_vf_iteration():
 	model = BasicModel()
 	agent = BasicModelAgent(model)
-	policy, V_final = compute_policy(agent, verbose=True, method='vf_iteration')
+	policy, V_final, grid = compute_policy(agent, verbose=True, method='vf_iteration')
 	
 if __name__ == '__main__':
 	from dgp import *

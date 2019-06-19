@@ -5,12 +5,32 @@
 # These definitions will contain all information necessary to solve and simulate the model
 
 import numpy as np 
-from numba import njit, float64, uint16
+from numba import njit, float64, uint16, boolean, int64
+
+# This helper function generates an approximately sparse signal of the form Theta_1 + Theta_2
+# - p = dimension of vector
+# - s = size of support of (truly sparse) Theta_1
+# - Theta_2 (apx. sparse) has k'th coordinate U_k/k^2 where U_k is Unif[-1,1].
+@njit("float64[:](uint16, uint16, boolean, boolean)")
+def approximately_sparse(p, s, true_sparse_component=True, decay_component=True):
+ 	
+	dense_part = np.multiply(
+		1 - 2 * np.random.random_sample(size=(p,)),
+		1./np.power(np.arange(1,p+1),2)
+	)
+
+	sparse_support = np.random.choice(p,s)
+	sparse_coefficients = 1 - 2 * np.random.random_sample(size=(s,))
+
+	sparse_part = np.zeros(p)
+	sparse_part[sparse_support] = sparse_coefficients
+
+	return dense_part*int(decay_component) + sparse_part*int(true_sparse_component)
+
 
 # The "Model" class is a template outlining the information required to solve and simulate a model within our framework
 # Each instance of the Model class will be able to map states and actions to utilities and transition probabilities
 # according to a specified data generating process.
-
 class Model(object):
 	
 	def __init__(self, p=1000, q=1, beta=.01):
@@ -35,7 +55,6 @@ class Model(object):
 			
 # An instance of the BasicModel class is a data generating process with approximately sparse utility specification
 # and truly sparse AR(1) law of motion.
-
 class BasicModel(Model):
 	
 	def __init__(self, s=10, *args, **kwargs):
@@ -45,8 +64,8 @@ class BasicModel(Model):
 	def generate_model_parameters(self):
 		
 		# These determine the state- and action-specific utility function
-		self.B0 = approximately_sparse(self.p+self.q, self.s)
-		self.B1 = approximately_sparse(self.p+self.q, self.s)
+		self.B0 = approximately_sparse(self.p+self.q, self.s, true_sparse_component=True, decay_component=True)
+		self.B1 = approximately_sparse(self.p+self.q, self.s, true_sparse_component=True, decay_component=True)
 
 		
 		self.A0 = self.make_ar(self.p, self.s)
@@ -57,7 +76,7 @@ class BasicModel(Model):
 	@staticmethod
 	@njit('float64[:](uint16, uint16)')
 	def make_ar(p, s):
-		return np.absolute(approximately_sparse(self.p, self.s, decay_component=False)) / (self.s+1) + 1./np.power(self.p,2)
+		return np.absolute(approximately_sparse(p, s, true_sparse_component=True, decay_component=False)) / (s+1) + 1./np.power(p,2)
 
 	def utility(self, action, state, shock):
 		return action * np.dot(self.B1, state) + (1-action) * np.dot(self.B0, state) + shock
@@ -65,33 +84,12 @@ class BasicModel(Model):
 	def next_dynamic_state(self, action, state, shock):
  		return ( action * np.dot(self.A1,state[self.q:]) + (1-action)*np.dot(self.A0,state[self.q:]) ) * state[0:self.q] + shock
  		
-# This helper function generates an approximately sparse signal of the form Theta_1 + Theta_2
-# - p = dimension of vector
-# - s = size of support of (truly sparse) Theta_1
-# - Theta_2 (apx. sparse) has k'th coordinate U_k/k^2 where U_k is Unif[-1,1].
-@njit("float64[:](uint16, uint16, boolean, boolean)")
-def approximately_sparse(p, s, true_sparse_component=True, decay_component=True):
- 	
-	dense_part = np.multiply(
-		1 - 2 * np.random.random_sample(size=(p,)),
-		1./np.power(np.array(range(1,p+1)),2)
-	)
-
-	sparse_support = np.random.choice(p,s)
-	sparse_coefficients = 1 - 2 * np.random.random_sample(size=(s,))
-
-	sparse_part = np.zeros(p)
-	sparse_part[sparse_support] = sparse_coefficients
-
-	return dense_part*int(decay_component) + sparse_part*int(true_sparse_component)
-
 class ModelAgent(object):
 	
 	def __init__(self, model):
 		self.model = model 
 		self.static_state = self.generate_static_state(self.model.p)
-		self.dynamic_state = self.generate_dynamic_state(self.model.q)
-		self.initial_dynamic_state = self.dynamic_state
+		self.initial_dynamic_state = self.generate_dynamic_state(self.model.q)
 		
 	@staticmethod
 	@njit("float64[:](uint16)")
@@ -103,8 +101,7 @@ class ModelAgent(object):
 	def generate_dynamic_state(q):
 		return np.random.randn(q)
 		
-	def utility(self, action, shock, dynamic_state=None):
-		dynamic_state = (self.dynamic_state if dynamic_state is None else dynamic_state)
+	def utility(self, action, shock, dynamic_state):
 		state = np.concatenate((dynamic_state,self.static_state))
 		return self.model.utility(state, action, shock)
 		
@@ -119,11 +116,11 @@ class ModelAgent(object):
 	def simulate(self, shocks, policy, T):
 		states = np.zeros(T,self.model.q)
 		actions = np.zeros(T)
+		dynamic_state = self.initial_dynamic_state
 		for i in range(n):
-			states[i,:] = self.dynamic_state
-			actions[i] = policy(self.dynamic_state)
-			self.next_state(actions[i],shocks[i])
-		self.reset_state()
+			states[i,:] = dynamic_state
+			actions[i] = policy(dynamic_state)
+			dynamic_state = self.next_state(actions[i],shocks[i])
 		return (states, actions)
 			
 class BasicModelAgent(ModelAgent):
@@ -161,16 +158,17 @@ class BasicModelAgent(ModelAgent):
 		return (action * AR1 + (1-action) * AR0) * state + shock
 
 	@staticmethod
-	@njit("float64[:,:](float64, float64[:], float64[:], float64, float64, uint16)")
+	@njit("float64[:,:](float64[:], float64[:], float64[:], float64, float64, int64)")
 	def fast_simulate(init_state, policy, grid, AR0, AR1, T):
 		shocks = np.random.randn(T)
-		log = np.empty(T,2)
+		log = np.empty((T,np.int64(2)))
 		state = init_state
+		action = np.empty(1)
 		for t in range(T):
-			action = np.round(np.interp(grid, policy, state))
-			log[t,0] = state
-			log[t,1] = action
-			state = fast_basic_next_state(AR0, AR1, state, action, shocks[t])
+			np.round(np.interp(state, grid, policy), 0, action)
+			log[t,0] = state[0]
+			log[t,1] = action[0]
+			state = (action * AR1 + (1-action) * AR0) * state + shocks[t]
 		return log
 
 # TESTS

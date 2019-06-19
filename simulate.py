@@ -11,17 +11,20 @@ from numba import prange, jit, njit
 
 import pickle
 
-n_models = 100
+n_models = 10
 
 def simulate_basic_model_slow(agents = 100, T = 1000):
 	model = BasicModel()
-	DynamicStates = np.empty(agents, T)
-	StaticStates = np.empty(agents, p)
-	Actions = np.empty(agents, T)
+	DynamicStates = np.empty((agents, T))
+	StaticStates = np.empty((agents, model.p))
+	Actions = np.empty((agents, T))
 
 	for i in range(agents):
+		print("simulating agent %d" % i)
 		agent = BasicModelAgent(model)
-		_, policy, grid = compute_policy(agent, draws=10e4)
+		print("computing policy")
+		_, policy, grid = compute_policy(agent, n_draws=1e3)
+		print("running simulation")
 		agent_history = agent.simulate(policy, grid, T)
 		DynamicStates[i,:] = agent_history[:,0]
 		Actions[i,:] = agent_history[:,1]
@@ -35,7 +38,9 @@ def simulate_basic_model_slow(agents = 100, T = 1000):
 	}
 
 if __name__=='__main__':
+	print("beginning simulation")
 	models = [simulate_basic_model_slow() for _ in range(n_models)]
+	print("saving results")
 	pickle.dump(models,open('data_file.pkl','wb'))
 
 # @njit
